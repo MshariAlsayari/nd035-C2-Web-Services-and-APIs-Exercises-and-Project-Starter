@@ -2,8 +2,6 @@ package com.udacity.vehicles;
 
 import com.udacity.vehicles.domain.manufacturer.Manufacturer;
 import com.udacity.vehicles.domain.manufacturer.ManufacturerRepository;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -20,7 +18,6 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @SpringBootApplication
 @EnableJpaAuditing
-@OpenAPIDefinition(info = @Info(title = "Vehicles Api", version = "1.0", description = "Vehicles Information"))
 public class VehiclesApiApplication {
 
     public static void main(String[] args) {

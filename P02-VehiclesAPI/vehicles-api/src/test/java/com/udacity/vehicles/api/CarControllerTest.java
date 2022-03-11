@@ -1,5 +1,7 @@
 package com.udacity.vehicles.api;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,6 +24,8 @@ import com.udacity.vehicles.domain.manufacturer.Manufacturer;
 import com.udacity.vehicles.service.CarService;
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,17 +36,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
  * Implements testing of the CarController class.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CarControllerTest {
 
     @Autowired
@@ -50,6 +59,12 @@ public class CarControllerTest {
 
     @Autowired
     private JacksonTester<Car> json;
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     @MockBean
     private CarService carService;
@@ -150,6 +165,41 @@ public class CarControllerTest {
      * Creates an example Car object for use in testing.
      * @return an example Car object
      */
+
+    @Test
+    public void updateCar() throws Exception {
+
+        Car car = getCar();
+        car.setId(1L);
+
+        //create
+        mvc.perform(post(new URI("/cars"))
+                                .content(json.write(car).getJson())
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isCreated());
+
+
+        //Update
+        car.setCondition(Condition.NEW);
+        mvc.perform(MockMvcRequestBuilders.put(new URI("/cars/1"))
+                        .content(json.write(car).getJson())
+                        .accept(MediaType.APPLICATION_JSON_UTF8)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk());
+
+
+        //find
+        this.mvc.perform(get("/cars/1")
+                        .accept(MediaType.APPLICATION_JSON_UTF8)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk());
+
+        Mockito.verify(this.carService, times(1)).findById(1L);
+
+
+
+    }
     private Car getCar() {
         Car car = new Car();
         car.setLocation(new Location(40.730610, -73.935242));
